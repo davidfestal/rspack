@@ -133,6 +133,23 @@ fn is_numeric_id(s: &str) -> bool {
     .unwrap_or(false)
 }
 
+/// Get current time in milliseconds since Unix epoch
+pub fn current_time() -> u64 {
+  SystemTime::now()
+    .duration_since(UNIX_EPOCH)
+    .expect("should get current time")
+    .as_millis() as u64
+}
+
+static QUOTE_META_REG: LazyLock<Regex> = LazyLock::new(|| {
+  Regex::new(r"[-\[\]\\/{}()*+?.^$|]").expect("Failed to initialize QUOTE_META_REG")
+});
+
+/// Escape special regex characters in a string
+pub fn quote_meta(str: &str) -> String {
+  QUOTE_META_REG.replace_all(str, "\\$0").to_string()
+}
+
 #[cfg(test)]
 mod tests {
   use super::{is_numeric_id, json_stringify_chunk_id, json_stringify_chunk_ids};
@@ -177,21 +194,4 @@ mod tests {
       "[903,\"main\",17]"
     );
   }
-}
-
-/// Get current time in milliseconds since Unix epoch
-pub fn current_time() -> u64 {
-  SystemTime::now()
-    .duration_since(UNIX_EPOCH)
-    .expect("should get current time")
-    .as_millis() as u64
-}
-
-static QUOTE_META_REG: LazyLock<Regex> = LazyLock::new(|| {
-  Regex::new(r"[-\[\]\\/{}()*+?.^$|]").expect("Failed to initialize QUOTE_META_REG")
-});
-
-/// Escape special regex characters in a string
-pub fn quote_meta(str: &str) -> String {
-  QUOTE_META_REG.replace_all(str, "\\$0").to_string()
 }
